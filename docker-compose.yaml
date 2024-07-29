@@ -1,11 +1,10 @@
 version: "3.7"
 
-# name: tig
+name: tig
 
 services:
   influxdb:
     image: influxdb:1.8
-    # container_name: tig-influxdb
     env_file: .env
     ports:
       - "8086:8086"
@@ -15,7 +14,6 @@ services:
 
   telegraf:
     image: telegraf:latest
-    # container_name: telegraf
     depends_on:
       - influxdb
     user: root
@@ -26,7 +24,6 @@ services:
 
   grafana:
     image: grafana/grafana:8.0.2
-    # container_name: tig-grafana
     depends_on:
       - influxdb
     env_file: .env
@@ -41,14 +38,12 @@ services:
 
   mongodb:
     image: mongo:latest
-    # container_name: tig-mongodb
     ports:
       - "27018:27017"
     env_file: .env
 
   elasticsearch:
     image: elasticsearch:8.14.3
-    # container_name: tig-elasticsearch
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -68,6 +63,7 @@ services:
     depends_on:
       - mongodb
       - elasticsearch
+    restart: always
 
   nginx:
     image: nginx:latest

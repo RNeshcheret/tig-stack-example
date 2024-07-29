@@ -5,7 +5,7 @@
 ## Start the stack with docker compose
 
 ```bash
-$ docker-compose -p tig up --build -d
+$ docker-compose up --build -d
 ```
 
 ## Services and Ports

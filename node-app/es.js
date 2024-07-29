@@ -10,7 +10,7 @@ const INDEX_NAME = "logs";
 client
   .ping()
   .then(() => console.log("[ES] Connected!"))
-  .catch("[ES] Error: ", console.error);
+  .catch(`[ES: ${process.env.NODE_APP_ES}] Error:  `, console.error);
 
 const init = async () => {
   const exists = await client.indices.exists({ index: INDEX_NAME });

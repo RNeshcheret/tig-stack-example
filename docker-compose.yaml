@@ -1,0 +1,88 @@
+version: "3.7"
+
+# name: tig
+
+services:
+  influxdb:
+    image: influxdb:1.8
+    # container_name: tig-influxdb
+    env_file: .env
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./:/imports
+      - influxdb-data:/var/lib/influxdb
+
+  telegraf:
+    image: telegraf:latest
+    # container_name: telegraf
+    depends_on:
+      - influxdb
+    user: root
+    entrypoint: "telegraf"
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  grafana:
+    image: grafana/grafana:8.0.2
+    # container_name: tig-grafana
+    depends_on:
+      - influxdb
+    env_file: .env
+    links:
+      - influxdb
+    ports:
+      - "30001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./grafana/dashboards/:/var/lib/grafana/dashboards/
+
+  mongodb:
+    image: mongo:latest
+    # container_name: tig-mongodb
+    ports:
+      - "27018:27017"
+    env_file: .env
+
+  elasticsearch:
+    image: elasticsearch:8.14.3
+    # container_name: tig-elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - network.host=0.0.0.0
+      - ELASTIC_USERNAME=admin
+      - ELASTIC_PASSWORD=admin
+
+  node-app:
+    build: ./node-app
+    # container_name: node-app
+    env_file: .env
+    ports:
+      - "30002:4000"
+    depends_on:
+      - mongodb
+      - elasticsearch
+
+  nginx:
+    image: nginx:latest
+    # container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - node-app
+
+volumes:
+  influxdb-data: {}
+  grafana_data: {}
+
+networks:
+  default:
+    driver: bridge
